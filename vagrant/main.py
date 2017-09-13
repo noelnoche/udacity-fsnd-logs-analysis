@@ -24,9 +24,9 @@ class ReportLog(object):
         string to query the view tables.
     """
 
-    def __init__(self, queryarray, viewsarray):
-        self.queries_array = queryarray
-        self.views_array = viewsarray
+    def __init__(self, viewssql, queriesarray):
+        self.views_sql = viewssql
+        self.queries_array = queriesarray
         self.data_ready = False
 
 
@@ -67,11 +67,11 @@ class ReportLog(object):
                 # Create the views.
                 # for qry in self.queries_array:
                 #     cur.execute(qry)
-                cur.execute(self.queries_array)
+                cur.execute(self.views_sql)
             else:
 
                 # Extract data from the views.
-                for qstn, ansr in self.views_array:
+                for qstn, ansr in self.queries_array:
                     cur.execute(ansr)
                     data = cur.fetchall()
                     self.print_table(qstn, data)
@@ -154,10 +154,10 @@ def run_main():
             "select date, percent_error from error_reporter;")
 
     # queries_array = [qry1, qry2, q3v, qry3]
-    queries_array = open("views.sql", "r").read()
-    views_array = [tup1, tup2, tup3]
+    views_sql = open("views.sql", "r").read()
+    queries_array = [tup1, tup2, tup3]
 
-    logsobj = ReportLog(queries_array, views_array)
+    logsobj = ReportLog(views_sql, queries_array)
     logsobj.initialize()
 
 
