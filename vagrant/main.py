@@ -12,97 +12,111 @@ import sys
 import psycopg2
 
 
-class ReportLog(object):
-    """Database interface.
-    This class provides the interface for making and filtering SQL
-    queries and displaying the formatted results.
+# tup1, tup2, tup3: Tuple data for questions and answers.
+TUP1 = ("Here are the three top articles (total views): ",
+        "select title, views from top_articles;")
+
+TUP2 = ("Here are the most popular authors (total views): ",
+        "select name, views from top_authors;")
+
+TUP3 = ("Here are the dates when 404 errors exceeded 1%: ",
+        "select date, percent_error from error_reporter;")
+
+# queries_array = [qry1, qry2, q3v, qry3]
+VIEWS_SQL = open("views.sql", "r").read()
+QUERIES_ARRAY = [TUP1, TUP2, TUP3]
+
+# class ReportLog(object):
+#     """Database interface.
+#     This class provides the interface for making and filtering SQL
+#     queries and displaying the formatted results.
+
+#     Args:
+#         queryarray (:obj:`list` of :obj: `str`): Array of SQL queries.
+#         viewssarray (:obj:`list` of :obj: `tuple`): Array of tuples,
+#         with each tuple containing a string for the question and a
+#         string to query the view tables.
+#     """
+
+#     def __init__(self, viewssql, queriesarray):
+#         self.views_sql = viewssql
+#         self.queries_array = queriesarray
+#         self.data_ready = False
+
+
+def print_table(ques, data):
+    """Displays the results in a table format.
 
     Args:
-        queryarray (:obj:`list` of :obj: `str`): Array of SQL queries.
-        viewssarray (:obj:`list` of :obj: `tuple`): Array of tuples,
-        with each tuple containing a string for the question and a
-        string to query the view tables.
+        ques (str): The question the results answer.
+        data (:obj:`list` of :obj:`tuple`): Data retrieved from the
+        views created from the PostgreSQL database.
+    """
+    print "\n"
+    print ques
+    print "{:_<35} | {:_>10}".format('', '')
+
+    for row in data:
+        print "{:<35} | {:>10}".format(row[0], row[1])
+
+
+def process_db(init):
+    """Connects and makes queries to PostgreSQL database.
+    It makes two sets queries. The first creates views that make the
+    complex queries that grab the filtered data; the second then
+    queries those views for printing out with print_table().
+
+    Args:
+        init (bool): If True, creates the views.
     """
 
-    def __init__(self, viewssql, queriesarray):
-        self.views_sql = viewssql
-        self.queries_array = queriesarray
-        self.data_ready = False
+    db_conn = None
 
+    try:
+        db_conn = psycopg2.connect("dbname=news")
+        cur = db_conn.cursor()
 
-    def print_table(self, ques, data):
-        """Displays the results in a table format.
+        if init:
 
-        Args:
-            ques (str): The question the results answer.
-            data (:obj:`list` of :obj:`tuple`): Data retrieved from the
-            views created from the PostgreSQL database.
-        """
-        print "\n"
-        print ques
-        print "{:_<35} | {:_>10}".format('', '')
+            # Create the views.
+            # for qry in self.queries_array:
+            #     cur.execute(qry)
+            cur.execute(VIEWS_SQL)
+        else:
 
-        for row in data:
-            print "{:<35} | {:>10}".format(row[0], row[1])
+            # Extract data from the views.
+            for qstn, ansr in QUERIES_ARRAY:
+                cur.execute(ansr)
+                data = cur.fetchall()
+                print_table(qstn, data)
 
+            print "\nHave a nice day!\n"
 
-    def process_db(self, init):
-        """Connects and makes queries to PostgreSQL database.
-        It makes two sets queries. The first creates views that make the
-        complex queries that grab the filtered data; the second then
-        queries those views for printing out with print_table().
+        cur.close()
+        db_conn.commit()
+        db_conn.close()
 
-        Args:
-            init (bool): If True, creates the views.
-        """
+        return True
 
-        db_conn = None
+    except psycopg2.Error as error:
+        print error.pgerror
+        sys.exit(1)
 
-        try:
-            db_conn = psycopg2.connect("dbname=news")
-            cur = db_conn.cursor()
-
-            if init:
-
-                # Create the views.
-                # for qry in self.queries_array:
-                #     cur.execute(qry)
-                cur.execute(self.views_sql)
-            else:
-
-                # Extract data from the views.
-                for qstn, ansr in self.queries_array:
-                    cur.execute(ansr)
-                    data = cur.fetchall()
-                    self.print_table(qstn, data)
-
-                print "\nHave a nice day!\n"
-
-            cur.close()
-            db_conn.commit()
+    finally:
+        if db_conn is None:
+            print "Could not connect to database!"
             db_conn.close()
+            sys.exit(0)
 
-            return True
+def initialize():
+    """"Starts the database query process."""
 
-        except psycopg2.Error as error:
-            print error.pgerror
-            sys.exit(1)
+    data_ready = process_db(True)
 
-        finally:
-            if db_conn is None:
-                print "Could not connect to database!"
-                db_conn.close()
-                sys.exit(0)
-
-    def initialize(self):
-        """"Starts the database query process."""
-
-        self.data_ready = self.process_db(True)
-
-        while True:
-            if self.data_ready:
-                self.process_db(False)
-                break
+    while True:
+        if data_ready:
+            process_db(False)
+            break
 
 
 def run_main():
@@ -144,22 +158,24 @@ def run_main():
     #         "f.failed_requests/t.total_requests::float * 100.00 > 1;")
 
     # tup1, tup2, tup3: Tuple data for questions and answers.
-    tup1 = ("Here are the three top articles (total views): ",
-            "select title, views from top_articles;")
+    # tup1 = ("Here are the three top articles (total views): ",
+    #         "select title, views from top_articles;")
 
-    tup2 = ("Here are the most popular authors (total views): ",
-            "select name, views from top_authors;")
+    # tup2 = ("Here are the most popular authors (total views): ",
+    #         "select name, views from top_authors;")
 
-    tup3 = ("Here are the dates when 404 errors exceeded 1%: ",
-            "select date, percent_error from error_reporter;")
+    # tup3 = ("Here are the dates when 404 errors exceeded 1%: ",
+    #         "select date, percent_error from error_reporter;")
 
     # queries_array = [qry1, qry2, q3v, qry3]
-    views_sql = open("views.sql", "r").read()
-    queries_array = [tup1, tup2, tup3]
+    # views_sql = open("views.sql", "r").read()
+    # queries_array = [tup1, tup2, tup3]
 
-    logsobj = ReportLog(views_sql, queries_array)
-    logsobj.initialize()
+    # logsobj = ReportLog(views_sql, queries_array)
+    # logsobj.initialize()
+
 
 
 if __name__ == "__main__":
-    run_main()
+    # run_main()
+    initialize()
