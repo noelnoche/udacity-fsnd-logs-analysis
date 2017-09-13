@@ -33,16 +33,18 @@ Installation & Setup
 ---
 1. Install VirtualBox (See Reference section for link).
 2. Install Vagrant (See Reference section for link).
-3. Download and extract _udacity-fsnd-logs-analysis_ file.
-4. Run `cd vagrant`
-5. Unzip _newsdata.zip_
-6. Run `vagrant up` (Installs the virtual Linix OS).
-7. Run `vagrant ssh`
-8. Run `cd \vagrant` (virtual shared folder)
-9. Run `psql -d news -f newsdata.sql` (Builds the 'news' database)
-10. To disconnect and shut down Vagrant, continue on the next steps.
-11. Run `exit`
-12. Run `vagrant halt`
+3. Download and extract `udacity-fsnd-logs-analysis` file.
+4. Open your terminal application.
+5. Run `cd vagrant`.
+6. Unzip `newsdata.zip`.
+7. Run the following commands:
+    + `vagrant up` (Installs the virtual Linix OS)
+    + `vagrant ssh`
+    + `cd /vagrant` (virtual shared folder)
+    + `psql -d news -f newsdata.sql` (Builds the 'news' database)
+8. To disconnect and shut down Vagrant, run the following commands:
+    + `exit`
+    + `vagrant halt`
 
 
 How to Use
@@ -50,27 +52,27 @@ How to Use
 
 **From main.py**  
 
-1. Open your command line application.
-2. `cd` to _udacity-fsnd-logs-analysis/vagrant_
-3. Run `vagrant up`
-4. Run `vagrant ssh`
-5. Run `cd \vagrant`
-6. Run `python main.py`
+1. Open your terminal application.
+2. `cd` to `udacity-fsnd-logs-analysis/vagrant`.
+3. Run the following commands: 
+    + `vagrant up`
+    + `vagrant ssh`
+    + `cd /vagrant`
+    + `python main.py`
 
 **From psql command prompt**  
 
-1. Run `psql`
-2. Run `\c news`
-3. Run the following commands for each question:
+1. Run `psql` then `\c news`.
+2. Run the following commands for each question:
     + `select * from top_articles limit 3`
     + `select * from top_authors`
     + `select * from error_reporter`
 
 **clear\_views.py**  
-This utility removes all the views that were created by _main.py_.
+This utility removes all the views that were created by `main.py`.
 
-1. `cd` to _udacity-fsnd-logs-analysis/vagrant_
-2. Run `python clear_views.py`
+1. `cd` to `udacity-fsnd-logs-analysis/vagrant`.
+2. Run `python clear_views.py`.
 
 
 Credits
